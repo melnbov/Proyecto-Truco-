@@ -1,4 +1,4 @@
 # Juego del Truco en Python
-Este proyecto consiste en la implementación del juego del Truco argentino en consola, donde un jugador puede enfrentarse contra la computadora. El sistema simula el reparto de cartas, el desarrollo de rondas y la toma de decisiones básica de la IA.
+Este proyecto consiste en la implementación del juego del Truco argentino en consola, donde un jugador puede enfrentarse contra la computadora. La computadora tendrá decisiones automáticas basadas en condiciones simples y llevar un conteo correcto de puntos durante la partida.
 
 
