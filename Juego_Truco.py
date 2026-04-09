@@ -39,7 +39,7 @@ def reglasDeJuego():
             elif opcion == "3":
                 print("\n--- Restricciones ---")
                 print("- No se podrá cantar flor.")
-                print("- No hay envido, falta envido y real envido.")
+                print("- No hay envido envido, falta envido y real envido.")
             
             elif opcion == "4":
                 print("Volviendo al menú principal...")
