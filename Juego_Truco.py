@@ -1,3 +1,4 @@
+
 def reglasDeJuego():
     """
     La funcion "reglasDeJuego" tiene 3 opciones en la que se puede ver
@@ -73,4 +74,5 @@ def menuDeInicio():
                 print("Mostrando historial...")
             elif opcion == "4":
                 print("¡Hasta Luego!")
+
 
