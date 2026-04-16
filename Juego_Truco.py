@@ -73,4 +73,3 @@ def menuDeInicio():
                 print("Mostrando historial...")
             elif opcion == "4":
                 print("¡Hasta Luego!")
-
