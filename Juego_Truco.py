@@ -2,35 +2,26 @@ import random
 palos = ["oro", "copa", "espada", "basto"]
 numeros = [1,2,3,4,5,6,7,10,11,12]
 
+valores_cartas={
+    (1, "espada"): 14,
+    (1, "basto"): 13,
+    (7, "espada"): 12,
+    (7, "oro"): 11,
+    3: 10,
+    2: 9,
+    1: 8,
+    12: 7,
+    11: 6,
+    10: 5,
+    7: 4,
+    6: 3,
+    5: 2,
+    4: 1
+}
+    
+
 def valor_truco(numero,palo):
-    if numero==1 and palo=="espada":
-        return 14
-    elif numero==1 and palo=="basto":
-        return 13
-    elif numero==7 and palo=="espada":
-        return 12
-    elif numero==7 and palo=="oro":
-        return 11
-    elif numero==3:
-        return 10
-    elif numero==2:
-        return 9
-    elif numero==1:
-        return 8
-    elif numero==12:
-        return 7
-    elif numero==11:
-        return 6
-    elif numero==10:
-        return 5
-    elif numero==7:
-        return 4
-    elif numero==6:
-        return 3
-    elif numero==5:
-        return 2
-    elif numero==4:
-        return 1
+   return valores_cartas.get((numero,palo), valores_cartas[numero])
 
 def crear_mazo():
     """
@@ -106,11 +97,8 @@ def decidir_truco(mano):
     decide cantar truco.
     Retorna True si canta truco, False si no.
     """
-    for carta in mano:
-        if carta[0] > 2:
-            return True
-    return False
-
+    return any(carta[2] >= 10 for carta in mano)
+    
 def decidir_retruco(mano):
     """
     La función "decidir_retruco" determina si la computadora debe cantar retruco.
@@ -155,6 +143,12 @@ def resultado_envido(gana_pc, rechazado, puntos_juego, marcador):
             marcador["jugador"] += 2
             
 """Puntos para el truco"""
+puntos_truco={
+    1:2, #truco
+    2:3, #retruco
+    3:4 #vale cuatro
+}
+
 def resultado_truco(nivel, ganado_pc, rechazado, marcador, cantado_por):
     """
     La función "resultado_truco" actualiza el marcador según el resultado del truco.
@@ -167,15 +161,10 @@ def resultado_truco(nivel, ganado_pc, rechazado, marcador, cantado_por):
     """
     if rechazado:
         # El punto lo gana quien cantó el truco
-        marcador[cantado_por] += 1
+        marcador[cantado_por] += nivel
         return
 
-    if nivel == 1:
-        puntos = 2
-    elif nivel == 2:
-        puntos = 3
-    else:
-        puntos = 4
+    puntos=puntos_truco[nivel]
 
     if ganado_pc:
         marcador["pc"] += puntos
