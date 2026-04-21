@@ -35,6 +35,15 @@ def crear_mazo():
             mazo.append([numero, palo, valor_truco(numero,palo)])
     return mazo
 
+def elegirpuntos():
+    """
+    Esta funcion permite que el jugador elija a cuantos puntos quiere jugar la partida
+    """
+    puntos=int(input("Desea que la partida se defina a los 15 o 30 puntos? Escriba el numero: "))
+    while puntos != 15 and puntos != 30:
+        puntos=int(input("Valor invalido, ingrese 15 o 30: "))
+    return puntos
+
 def mezclar_mazo(mazo):
     """
     Mezcla aleatoriamente el mazo usando random.shuffle.
@@ -65,14 +74,13 @@ def calcular_envido(mano):
     puntos = 0
     palos_dict = {}
 
-    for carta in mano:
-        valor = carta[0]
-        palo = carta[1]
+    cartas_validas=list(filter(lambda carta: carta[0] <= 7, mano))
 
-        if valor <= 7:
+    for carta in cartas_validas:
+            palo=carta[1]
             if palo not in palos_dict:
                 palos_dict[palo] = []
-            palos_dict[palo].append(valor)
+            palos_dict[palo].append(carta[0])
 
     for palo in palos_dict:
         if len(palos_dict[palo]) >= 2:
@@ -295,8 +303,7 @@ def jugar_partida():
     print("\n===== INICIANDO PARTIDA =====")
 
     print("\nMano del Jugador:")
-    for c in mano_jugador:
-        print(c)
+    list(map(lambda c: print(c), mano_jugador))
 
     print("\n===== DECISIONES DE LA PC =====")
 
