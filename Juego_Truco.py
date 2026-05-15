@@ -1,9 +1,9 @@
 
 import random
-palos = ["oro", "copa", "espada", "basto"]
-numeros = [1,2,3,4,5,6,7,10,11,12]
+PALOS = ["oro", "copa", "espada", "basto"]
+NUMEROS = [1,2,3,4,5,6,7,10,11,12]
 
-valores_cartas={
+VALORES_CARTAS={
     (1, "espada"): 14,
     (1, "basto"): 13,
     (7, "espada"): 12,
@@ -22,7 +22,7 @@ valores_cartas={
     
 
 def valor_truco(numero,palo):
-   return valores_cartas.get((numero,palo), valores_cartas[numero])
+   return VALORES_CARTAS.get((numero,palo), VALORES_CARTAS[numero])
 
 def crear_mazo():
     """
@@ -31,8 +31,8 @@ def crear_mazo():
     Retorna el mazo completo sin mezclar.
     """
     mazo = []
-    for palo in palos:
-        for numero in numeros:
+    for palo in PALOS:
+        for numero in NUMEROS:
             mazo.append([numero, palo, valor_truco(numero,palo)])
     return mazo
 
@@ -215,44 +215,48 @@ def reglasDeJuego():
     reestricciones del juego y salir al menu principal 
 
     """
-    opcion="0"
+    opcion=0
 
-    while opcion != "4":
+    while opcion != 4:
         print("\n===== Reglas del Truco =====")
         print("1. Ver reglas generales")
         print("2. Ver sistema de puntos")
         print("3. Ver restricciones")
         print("4. Salir de reglas del truco")
-        opcion=input("\nIngresa una opcion: ")
 
-        if opcion not in ["1","2","3","4"]:
-            print("Opción invalida. Ingresá un numero del 1 al 4.")
-        else:
-            if opcion == "1":
-                print("\n--- Reglas Generales ---")
-                print("- El juego será entre el jugador y la computadora")
-                print("- La partida podrá ser hasta 15 o 30 puntos")
-                print("- Se va a poder cantar, Envido, Truco, Retruco y Valecuatro")
-                print("- Se gana cuando el jugador o la computadora llega a 15 o 30 puntos")
+        try:
+            opcion=int(input("\nIngresa una opcion: "))
 
-            elif opcion == "2":
-                print("\n--- Sistema de Puntos ---")
-                print("- Retirarse en la primera ronda: 1 punto al contrincante.")
-                print("- Ganar el Envido: 2 puntos.")
-                print("- Rechazar el Envido: 1 punto al que lo cantó.")
-                print("- Ganar el Truco: 2 puntos.")
-                print("- Retruco: 3 puntos.")
-                print("- Valecuatro: 4 puntos.")
-                print("- Rechazar el Truco: 1 punto al que lo cantó.")
-                print("- Sin cantos: 1 punto al ganador de la ronda.")
+            if opcion < 1 or opcion > 4:
+                print("Opción invalida. Ingresá un numero del 1 al 4.")
+            else:
+                if opcion == 1:
+                    print("\n--- Reglas Generales ---")
+                    print("- El juego será entre el jugador y la computadora")
+                    print("- La partida podrá ser hasta 15 o 30 puntos")
+                    print("- Se va a poder cantar, Envido, Truco, Retruco y Valecuatro")
+                    print("- Se gana cuando el jugador o la computadora llega a 15 o 30 puntos")
 
-            elif opcion == "3":
-                print("\n--- Restricciones ---")
-                print("- No se podrá cantar flor.")
-                print("- No hay envido envido, falta envido y real envido.")
+                elif opcion == 2:
+                    print("\n--- Sistema de Puntos ---")
+                    print("- Retirarse en la primera ronda: 1 punto al contrincante.")
+                    print("- Ganar el Envido: 2 puntos.")
+                    print("- Rechazar el Envido: 1 punto al que lo cantó.")
+                    print("- Ganar el Truco: 2 puntos.")
+                    print("- Retruco: 3 puntos.")
+                    print("- Valecuatro: 4 puntos.")
+                    print("- Rechazar el Truco: 1 punto al que lo cantó.")
+                    print("- Sin cantos: 1 punto al ganador de la ronda.")
+
+                elif opcion == 3:
+                    print("\n--- Restricciones ---")
+                    print("- No se podrá cantar flor.")
+                    print("- No hay envido envido, falta envido y real envido.")
             
-            elif opcion == "4":
-                print("Volviendo al menú principal...")
+                elif opcion == 4:
+                    print("Volviendo al menú principal...")
+        except ValueError:
+            print("Eso no es un numero. Ingresá solo números del 1 al 4.")
             
 
 def menuDeInicio():
@@ -261,29 +265,33 @@ def menuDeInicio():
     va a dejar al usuario ingresar a una nueva partida, ver las reglas del juego,
     ver su historial de partidas y salir 
     """
-    opcion = "0"
+    opcion_numero = 0
 
-    while opcion != "4":
+    while opcion_numero != 4:
         print("¡Bienvenidos al Juego del Truco!")
         print("1. Jugar una nueva partida")
         print("2. Ver reglas del juego")
         print("3. Ver historial de jugadas")
         print("4. Salir")
 
-        opcion = input("Ingresa una opcion: ")
+        try:
+            opcion_numero = int(input("Ingresa una opcion: "))
 
-        if opcion not in ["1", "2", "3", "4"]:
-            print("Opcion inválida. Ingresá un numero del 1 al 4")
-        else:
-            if opcion == "1":
-                print("Iniciando juego...")
-                jugar_partida()
-            elif opcion == "2":
-                reglasDeJuego()
-            elif opcion == "3":
-                print("Mostrando historial...")
-            elif opcion == "4":
-                print("¡Hasta Luego!")
+            if opcion_numero <1 or opcion_numero > 4:
+                print("Opcion inválida. Ingresá un numero del 1 al 4")
+            else:
+                if opcion_numero == 1:
+                    print("Iniciando juego...")
+                    jugar_partida()
+                elif opcion_numero == 2:
+                    reglasDeJuego()
+                elif opcion_numero == 3:
+                    print("Mostrando historial...")
+                elif opcion_numero == 4:
+                    print("¡Hasta Luego!")
+                    opcion_numero=4
+        except ValueError:
+            print("Eso no es un numero. Ingresá solo números del 1 al 4.")
 
 
 def jugar_partida():
