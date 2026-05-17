@@ -60,9 +60,196 @@ def repartir(mazo):
     mano_pc = mazo[:3]
     mano_jugador = mazo[3:6]
     return mano_pc, mano_jugador
-    
-"""Valores de las cartas"""
 
+def elegir_carta_jugador(mano_jugador):
+    """El jugador elige la carta a jugar o puede irse al mazo"""
+    seleccion=-1
+    
+    while seleccion<0 or seleccion>len(mano_jugador):
+        print("\nMano del Jugador:")
+        print("0. Irse al mazo")
+        
+        i=0
+        
+        while i<len(mano_jugador):
+            numero,palo,valor=mano_jugador[i]
+            print(str(i+1)+"."+str(numero)+" de "+palo)
+            i+=1
+            
+        try:
+            seleccion=int(input("Ingrese la carta a jugar o 0 para irse al mazo:"))
+            
+            if seleccion<0 or seleccion>len(mano_jugador):
+                print("Error: esa carta no esta en tu mano.")
+                
+        except ValueError:
+            print("Error: hay que ingresar un numero.")
+            seleccion=-1
+            
+    if seleccion==0:
+        return "mazo"
+    
+    carta_elegida=mano_jugador.pop(seleccion-1)
+    
+    return carta_elegida
+
+def nombre_carta(carta):
+    return str(carta[0])+" de "+carta[1]
+
+def elegir_mano():
+    numero=random.randint(1,2)
+    
+    if numero==1:
+        return "jugador"
+    else:
+        return "pc"
+    
+def elegir_carta_pc(mano_pc,carta_jugador):
+    if carta_jugador==None:
+        carta_pc=min(mano_pc, key=lambda carta:carta[2])
+    else:
+        cartas_que_ganan = list(filter(lambda carta: carta[2] > carta_jugador[2], mano_pc))
+        
+        if len(cartas_que_ganan)>0:
+            carta_pc=min(cartas_que_ganan, key=lambda carta: carta[2])
+        else:
+            carta_pc = min(mano_pc, key=lambda carta: carta[2])
+            
+    mano_pc.remove(carta_pc)
+    
+    return carta_pc
+    
+def ganador_ronda(carta_jugador, carta_pc):
+    if carta_jugador[2]>carta_pc[2]:
+        return "jugador"
+    elif carta_pc[2]>carta_jugador[2]:
+        return "pc"
+    
+    return "parda"
+
+def mostrar_resultado_ronda(carta_jugador, carta_pc, ganador):
+    print("\nJugador jugó: " + nombre_carta(carta_jugador))
+    print("PC jugó: " + nombre_carta(carta_pc))
+     
+    if ganador == "jugador":
+        print("Ganaste esta ronda.")
+    elif ganador == "pc":
+        print("La PC ganó esta ronda.")
+    else:
+        print("La ronda fue parda.")
+        
+def jugar_ronda(mano_jugador, mano_pc, turno):
+    if turno == "jugador":
+        carta_jugador = elegir_carta_jugador(mano_jugador)
+        
+        if carta_jugador == "mazo":
+            return "mazo"
+        
+        carta_pc = elegir_carta_pc(mano_pc, carta_jugador)
+    else:
+         carta_pc = elegir_carta_pc(mano_pc, None)
+         print("\nLa PC empieza y juega: " + nombre_carta(carta_pc))
+         
+         carta_jugador = elegir_carta_jugador(mano_jugador)
+         
+         if carta_jugador == "mazo":
+            return "mazo"
+         
+    ganador = ganador_ronda(carta_jugador, carta_pc)
+    
+    mostrar_resultado_ronda(carta_jugador, carta_pc, ganador)
+    
+    return ganador
+        
+def siguiente_turno(ganador, turno_actual):
+    if ganador == "parda":
+        return turno_actual
+    
+    return ganador
+
+def ganador_mano_terminada(resultados, mano):
+    if len(resultados) == 2:
+        primera = resultados[0]
+        segunda = resultados[1]
+        
+        if primera == "parda" and segunda != "parda":
+            return segunda
+        elif primera != "parda" and segunda == primera:
+            return primera
+        elif primera != "parda" and segunda == "parda":
+            return primera
+        
+    elif len(resultados) == 3:
+        primera = resultados[0]
+        segunda = resultados[1]
+        tercera = resultados[2]
+        
+        if primera == "parda" and segunda == "parda" and tercera == "parda":
+            return mano
+        elif primera == "parda" and segunda != "parda":
+            return segunda
+        elif primera == "parda" and segunda == "parda" and tercera != "parda":
+            return tercera
+        elif tercera != "parda":
+            return tercera
+        
+        return primera
+    return None
+
+def jugar_mano():
+    mazo=crear_mazo()
+    mezclar_mazo(mazo)
+    
+    puntos=1
+    
+    mano_pc,mano_jugador=repartir(mazo)
+    
+    mano=elegir_mano()
+    turno=mano
+    resultados=[]
+    ganador_mano=None
+    se_fue_al_mazo=False
+    
+    print("\n----- NUEVA MANO -----")
+    print("Empieza: " + mano)
+    
+    for numero_ronda in range(1, 4):
+        print("\n--- Ronda " + str(numero_ronda) + " ---")
+        
+        ganador = jugar_ronda(mano_jugador, mano_pc, turno)
+        
+        if ganador == "mazo":
+            ganador_mano = "pc"
+            se_fue_al_mazo = True
+
+            if numero_ronda == 1:
+                puntos = 2
+            else:
+                puntos = 1
+            break
+        
+        resultados.append(ganador)
+        
+        ganador_mano = ganador_mano_terminada(resultados, mano)
+        
+        if ganador_mano != None:
+            break
+        
+        turno=siguiente_turno(ganador,turno)
+        
+    print("\n----- RESULTADO DE LA MANO -----")
+    
+    if se_fue_al_mazo:
+        print("Te fuiste al mazo.")
+        print("La PC gana la mano y obtiene " + str(puntos) + " punto/s.")
+    
+    elif ganador_mano=="jugador":
+        print("Ganaste la mano y obtenés " + str(puntos) + " punto/s.")
+    else:
+        print("La PC ganó la mano y obtiene " + str(puntos) + " punto/s.")
+        
+    return ganador_mano,puntos
+          
 """Función para envido"""
 def calcular_envido(mano):
     """
@@ -295,40 +482,21 @@ def menuDeInicio():
 
 
 def jugar_partida():
-    """
-    Ejecuta una partida del Truco.
-    - Crea y mezcla el mazo
-    - Reparte cartas
-    - Muestra la mano del jugador
-    - Evalúa decisiones automáticas de la PC
-    - Espera al usuario para volver al menú
-    """
-    marcador = {"pc": 0, "jugador": 0}
-
-    mazo = crear_mazo()
-    mezclar_mazo(mazo)
-
-    mano_pc, mano_jugador = repartir(mazo)
-
-    print("\n===== INICIANDO PARTIDA =====")
-
-    print("\nMano del Jugador:")
-    list(map(lambda c: print(c), mano_jugador))
-
-    print("\n===== DECISIONES DE LA PC =====")
-
-    if decidir_envido(mano_pc):
-        print("PC canta ENVIDO")
-
-    if decidir_truco(mano_pc):
-        print("PC canta TRUCO")
-
-    if decidir_retruco(mano_pc):
-        print("PC canta RETRUCO")
-
-    if decidir_valecuatro(mano_pc):
-        print("PC canta VALE CUATRO")
+    """Ejecuta una partida simple sin truco, sin envido y sin marcador acumulado."""
     
+    continuar = "s"
+    
+    print("\n----- INICIANDO PARTIDA SIMPLE -----")
+     
+    while continuar == "s":
+        jugar_mano()
+          
+        continuar=input("\n¿Querés jugar otra mano? (s/n): ").lower()
+          
+        while continuar != "s" and continuar != "n":
+              
+            continuar = input("Opción inválida. Ingresá s o n: ").lower()
+            
     input("\nPresioná ENTER para volver al menú...")
-    
+
 menuDeInicio()
