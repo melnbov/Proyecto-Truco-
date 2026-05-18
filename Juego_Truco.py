@@ -94,9 +94,11 @@ def elegir_carta_jugador(mano_jugador):
     return carta_elegida
 
 def nombre_carta(carta):
+    """Convierte los valores de las cartas almacenados en el diccionario en un nombre de carta legible"""
     return str(carta[0])+" de "+carta[1]
 
 def elegir_mano():
+    """Elige de manera aleatoria quien juega primero"""
     numero=random.randint(1,2)
     
     if numero==1:
@@ -105,6 +107,7 @@ def elegir_mano():
         return "pc"
     
 def elegir_carta_pc(mano_pc,carta_jugador):
+    """Funcion para que la pc pueda elegir cual es la mejor carta a jugar"""
     if carta_jugador==None:
         carta_pc=min(mano_pc, key=lambda carta:carta[2])
     else:
@@ -120,6 +123,7 @@ def elegir_carta_pc(mano_pc,carta_jugador):
     return carta_pc
     
 def ganador_ronda(carta_jugador, carta_pc):
+    """Define quien ha ganado la ronda o si ha habido un empate"""
     if carta_jugador[2]>carta_pc[2]:
         return "jugador"
     elif carta_pc[2]>carta_jugador[2]:
@@ -128,6 +132,7 @@ def ganador_ronda(carta_jugador, carta_pc):
     return "parda"
 
 def mostrar_resultado_ronda(carta_jugador, carta_pc, ganador):
+    """Muestra al jugador cual fue el resultado de la ronda"""
     print("\nJugador jugó: " + nombre_carta(carta_jugador))
     print("PC jugó: " + nombre_carta(carta_pc))
      
@@ -139,6 +144,7 @@ def mostrar_resultado_ronda(carta_jugador, carta_pc, ganador):
         print("La ronda fue parda.")
         
 def jugar_ronda(mano_jugador, mano_pc, turno):
+    """Funcion para jugar una ronda de truco. El jugador puede elegir jugar una carta o irse al mazo"""
     if turno == "jugador":
         carta_jugador = elegir_carta_jugador(mano_jugador)
         
@@ -162,12 +168,14 @@ def jugar_ronda(mano_jugador, mano_pc, turno):
     return ganador
         
 def siguiente_turno(ganador, turno_actual):
+    """Define quien empieza la proxima ronda dependiendo de los resultados anteriores"""
     if ganador == "parda":
         return turno_actual
     
     return ganador
 
 def ganador_mano_terminada(resultados, mano):
+    """Define los resultados de la mano jugada"""
     if len(resultados) == 2:
         primera = resultados[0]
         segunda = resultados[1]
@@ -197,6 +205,7 @@ def ganador_mano_terminada(resultados, mano):
     return None
 
 def jugar_mano():
+    """Esta funcion organiza como se juega la mano, la cual puede tener hasta tres rondas. Organiza las rondas, uniendo las distintas funciones que conforman la mano de truco"""
     mazo=crear_mazo()
     mezclar_mazo(mazo)
     
