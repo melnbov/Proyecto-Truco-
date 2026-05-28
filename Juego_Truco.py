@@ -30,30 +30,25 @@ def crear_mazo():
     """
     Crea el mazo completo de Truco.
     Cada carta tiene:
-    [numero, palo, valor_truco]
+    (numero, palo)
     """
-    mazo = []
+    return{
+        (numero,palo)
+        for palo in PALOS
+        for numero in NUMEROS
+    }
 
-    for palo in PALOS:
-        for numero in NUMEROS:
-
-            mazo.append([numero, palo, valor_truco(numero,palo)])
-
-    return mazo
-
-def mezclar_mazo(mazo):
-    """
-    Mezcla el mazo aleatoriamente.
-    """
-    random.shuffle(mazo)
 
 def repartir(mazo):
     """
     Reparte 3 cartas a la PC
     y 3 cartas al jugador.
     """
-    mano_pc = mazo[:3]
-    mano_jugador = mazo[3:6]
+    mano_pc = random.sample(list(mazo), 3)
+
+    restantes = mazo - set(mano_pc)
+
+    mano_jugador = random.sample(list(restantes), 3)
 
     return mano_pc, mano_jugador
 
@@ -93,7 +88,7 @@ def mostrar_mano(mano_jugador):
 
     while i < len(mano_jugador):
 
-        numero, palo, valor = mano_jugador[i]
+        numero, palo = mano_jugador[i]
 
         print(str(i+1) + ". " + str(numero) + " de " + palo)
 
@@ -124,7 +119,7 @@ def elegir_carta_jugador(mano_jugador):
 
         while i < len(mano_jugador):
 
-            numero, palo, valor = mano_jugador[i]
+            numero, palo = mano_jugador[i]
 
             print(str(i+1) + ". " + str(numero) + " de " + palo)
 
@@ -163,22 +158,33 @@ def elegir_carta_pc(mano_pc, carta_jugador):
     """
     if carta_jugador == None:
 
-        carta_pc = min(mano_pc, key=lambda carta: carta[2])
+        carta_pc = min(
+            mano_pc,
+            key=lambda carta: valor_truco(carta[0], carta[1])
+        )
 
     else:
 
         cartas_que_ganan = list(filter(
-            lambda carta: carta[2] > carta_jugador[2],
+            lambda carta:
+                valor_truco(carta[0], carta[1]) >
+                valor_truco(carta_jugador[0], carta_jugador[1]),
             mano_pc
         ))
 
         if len(cartas_que_ganan) > 0:
 
-            carta_pc = min(cartas_que_ganan, key=lambda carta: carta[2])
+            carta_pc = min(
+                cartas_que_ganan,
+                key=lambda carta: valor_truco(carta[0], carta[1])
+            )
 
         else:
 
-            carta_pc = min(mano_pc, key=lambda carta: carta[2])
+            carta_pc = min(
+                mano_pc,
+                key=lambda carta: valor_truco(carta[0], carta[1])
+            )
 
     mano_pc.remove(carta_pc)
 
@@ -189,11 +195,21 @@ def ganador_ronda(carta_jugador, carta_pc):
     Determina el ganador
     de la ronda.
     """
-    if carta_jugador[2] > carta_pc[2]:
+    valor_jugador=valor_truco(
+        carta_jugador[0],
+        carta_jugador[1]
+    )
+
+    valor_pc = valor_truco(
+        carta_pc[0],
+        carta_pc[1]
+    )
+
+    if valor_jugador > valor_pc:
 
         return "jugador"
 
-    elif carta_pc[2] > carta_jugador[2]:
+    elif valor_pc > valor_jugador:
 
         return "pc"
 
@@ -434,7 +450,7 @@ def hay_ganador(marcador, limite):
         
 def preguntar_si_no(mensaje):
     """
-    Pide una respuesta válida: s o n.
+    Pide una respuesta válida: s o si  o n o no
     """
     while True:
 
@@ -442,72 +458,89 @@ def preguntar_si_no(mensaje):
 
             respuesta = input(mensaje).strip().lower()
 
-            if respuesta == "s" or respuesta == "n":
+            if respuesta == "s" or respuesta == "si" or respuesta == "n" or respuesta == "no":
                 return respuesta
 
-            print("Error. Ingresá solamente 's' o 'n'.")
+            print("Error. Ingresá solamente 's/si'o'n/no'.")
 
         except Exception:
 
             print("Ocurrió un error al ingresar la respuesta.")
 
-def jugar_mano(marcador, quien_empieza):
+def preparar_mano():
+    """Se le asigna las cartas al jugador y a la pc """
 
     mazo = crear_mazo()
 
-    mezclar_mazo(mazo)
-
     mano_pc, mano_jugador = repartir(mazo)
 
-    puntos_truco = 1
-    nivel_truco = 0
+    return mano_pc, mano_jugador
+
+def mostrar_inicio_mano(mano_jugador, mano):
+    """En la funcion se muestra las cartas del jugador al inicio de una mano """
 
     print("\n===== NUEVA MANO =====")
 
     mostrar_mano(mano_jugador)
 
-    # ---------------- MANO ----------------
-
-    mano = quien_empieza
-    turno = mano
-    resultados = []
-
-    ganador_mano = None
-
     print("\nEmpieza:", mano)
 
-    # ---------------- ENVIDO ----------------
+def resolver_envido(
+    mano_jugador,
+    mano_pc,
+    marcador,
+    mano
+):
+    """En esta funcion se hace el calculo del envido en las cartas de la pc y el jugador"""
 
-    # SOLO canta envido el que es mano
+    envido_pc = calcular_envido(mano_pc)
+
+    envido_jugador = calcular_envido(mano_jugador)
+
+    print("\nTus puntos:", envido_jugador)
+    print("Puntos PC:", envido_pc)
+
+    if envido_jugador > envido_pc:
+
+        print("Ganaste el envido.")
+        marcador["jugador"] += 2
+
+    elif envido_pc > envido_jugador:
+
+        print("La PC ganó el envido.")
+        marcador["pc"] += 2
+
+    else:
+
+        print("Empate de envido.")
+
+        if mano == "jugador":
+
+            print("Ganás por ser mano.")
+            marcador["jugador"] += 2
+
+        else:
+
+            print("La PC gana por ser mano.")
+            marcador["pc"] += 2
+
+def jugar_envido(mano, mano_pc, mano_jugador, marcador):
+    """En esta funcion se decide si la profe canta o no envido y si acepta o no envido """
 
     if mano == "jugador":
 
-        respuesta = preguntar_si_no("\n¿Querés cantar ENVIDO? (s/n): ").strip().lower()
+        respuesta = preguntar_si_no(
+            "\n¿Querés cantar ENVIDO? (s/si o n/no): "
+        )
 
-        if respuesta == "s":
+        if respuesta == "s" or respuesta == "si":
 
-            envido_pc = calcular_envido(mano_pc)
-            envido_jugador = calcular_envido(mano_jugador)
-
-            print("\nTus puntos:", envido_jugador)
-            print("Puntos PC:", envido_pc)
-
-            if envido_jugador > envido_pc:
-
-                print("Ganaste el envido.")
-                marcador["jugador"] += 2
-
-            elif envido_pc > envido_jugador:
-
-                print("La PC ganó el envido.")
-                marcador["pc"] += 2
-
-            else:
-
-                print("Empate de envido.")
-                print("Ganás por ser mano.")
-
-                marcador["jugador"] += 2
+            resolver_envido(
+                mano_jugador,
+                mano_pc,
+                marcador,
+                "jugador"
+            )
 
     else:
 
@@ -515,207 +548,157 @@ def jugar_mano(marcador, quien_empieza):
 
             print("\nLa PC canta ENVIDO")
 
-            respuesta = preguntar_si_no("¿Aceptás? (s/n): ").strip().lower()
+            respuesta = preguntar_si_no(
+                "¿Aceptás? (s/si o n/no): "
+            )
 
-            if respuesta == "n":
+            if respuesta == "n" or respuesta == "no":
 
                 print("No aceptaste el envido.")
                 marcador["pc"] += 1
 
             else:
 
-                envido_pc = calcular_envido(mano_pc)
-                envido_jugador = calcular_envido(mano_jugador)
+                resolver_envido(
+                    mano_jugador,
+                    mano_pc,
+                    marcador,
+                    "pc"
+                )
+def manejar_truco(turno,mano_pc,mano_jugador,marcador,puntos_truco,nivel_truco):
+    """En esta funcion se decide si el usuario canta o no truco y si acepta o no truco """
+    if nivel_truco != 0:
 
-                print("\nTus puntos:", envido_jugador)
-                print("Puntos PC:", envido_pc)
+        return False, puntos_truco, nivel_truco
 
-                if envido_pc > envido_jugador:
+    if turno == "pc":
 
-                    print("La PC ganó el envido.")
-                    marcador["pc"] += 2
+        if decidir_truco(mano_pc):
 
-                elif envido_jugador > envido_pc:
+            print("\nLa PC canta TRUCO")
 
-                    print("Ganaste el envido.")
-                    marcador["jugador"] += 2
+            mostrar_mano(mano_jugador)
 
-                else:
+            respuesta = preguntar_si_no(
+                "¿Aceptás? (s/si o n/no): "
+            )
 
-                    print("Empate de envido.")
-                    print("La PC gana por ser mano.")
+            if respuesta == "n" or respuesta == "no":
 
-                    marcador["pc"] += 2
+                print("No aceptaste el truco.")
+                marcador["pc"] += 1
 
-    # ---------------- RONDAS ----------------
+                return True, puntos_truco, nivel_truco
+
+            print("Aceptaste el truco.")
+
+            nivel_truco = 1
+            puntos_truco = 2
+
+    else:
+
+        mostrar_mano(mano_jugador)
+
+        respuesta = preguntar_si_no(
+            "\n¿Querés cantar TRUCO? (si/s o n/no): "
+        )
+
+        if respuesta == "s" or respuesta=="si":
+
+            respuesta_pc = random.choice(["s", "n"])
+
+            if respuesta_pc == "n" or respuesta == "no":
+
+                print("La PC no aceptó el truco.")
+
+                marcador["jugador"] += 1
+
+                return True, puntos_truco, nivel_truco
+
+            print("La PC aceptó el truco.")
+
+            nivel_truco = 1
+            puntos_truco = 2
+
+    return False, puntos_truco, nivel_truco
+
+def jugar_rondas(mano_jugador,mano_pc,turno, mano,marcador,puntos_truco,nivel_truco):
+    """En la funcion se suma los puntos obtenidos en cada ronda ganada """
+
+    resultados = []
+
+    ganador_mano = None
 
     for ronda in range(1,4):
 
         print("\n--- RONDA", ronda, "---")
 
-        # ---------------- TRUCO ----------------
+        terminar,puntos_truco,nivel_truco = manejar_truco(turno,mano_pc,mano_jugador,marcador,puntos_truco,nivel_truco)
 
-        if nivel_truco == 0:
+        if terminar:
+             if turno == "jugador":
+                return "jugador", puntos_truco
 
-            if turno == "pc":
+             return "pc", puntos_truco
+            
 
-                if decidir_truco(mano_pc):
-
-                    print("\nLa PC canta TRUCO")
-                    mostrar_mano(mano_jugador)
-                    respuesta = preguntar_si_no("¿Aceptás? (s/n): ").strip().lower()
-
-                    if respuesta == "n":
-
-                        print("No aceptaste el truco.")
-                        marcador["pc"] += 1
-                        return
-
-                    else:
-
-                        print("Aceptaste el truco.")
-
-                        nivel_truco = 1
-                        puntos_truco = 2
-
-                        # EL JUGADOR puede retrucar
-                        mostrar_mano(mano_jugador)
-
-                        respuesta = preguntar_si_no("¿Querés cantar RETRUCO? (s/n): ").strip().lower()
-
-                        if respuesta == "s":
-
-                            respuesta_pc = random.choice(["s", "n"])
-
-                            if respuesta_pc == "n":
-
-                                print("La PC no aceptó el retruco.")
-                                marcador["jugador"] += 2
-                                return
-
-                            else:
-
-                                print("La PC aceptó el retruco.")
-
-                                nivel_truco = 2
-                                puntos_truco = 3
-
-                                # EL JUGADOR puede cantar VALE CUATRO
-                                mostrar_mano(mano_jugador)
-                                respuesta = preguntar_si_no("¿Querés cantar VALE CUATRO? (s/n): ").strip().lower()
-
-                                if respuesta == "s":
-
-                                    respuesta_pc = random.choice(["s", "n"])
-
-                                    if respuesta_pc == "n":
-
-                                        print("La PC no aceptó el vale cuatro.")
-                                        marcador["jugador"] += 3
-                                        return
-
-                                    else:
-
-                                        print("La PC aceptó el vale cuatro.")
-
-                                        nivel_truco = 3
-                                        puntos_truco = 4
-
-            else:
-                mostrar_mano(mano_jugador)
-                respuesta = preguntar_si_no("\n¿Querés cantar TRUCO? (s/n): ").strip().lower()
-
-                if respuesta == "s":
-
-                    respuesta_pc = random.choice(["s", "n"])
-
-                    if respuesta_pc == "n":
-
-                        print("La PC no aceptó el truco.")
-                        marcador["jugador"] += 1
-                        return
-
-                    else:
-
-                        print("La PC aceptó el truco.")
-
-                        nivel_truco = 1
-                        puntos_truco = 2
-
-                        # LA PC puede retrucar
-
-                        if decidir_retruco(mano_pc):
-
-                            print("\nLa PC canta RETRUCO")
-
-                            respuesta = preguntar_si_no("¿Aceptás? (s/n): ").strip().lower()
-
-                            if respuesta == "n":
-
-                                print("No aceptaste el retruco.")
-                                marcador["pc"] += 2
-                                return
-
-                            else:
-
-                                print("Aceptaste el retruco.")
-
-                                nivel_truco = 2
-                                puntos_truco = 3
-
-                                # EL JUGADOR puede cantar VALE CUATRO
-
-                                respuesta = preguntar_si_no("¿Querés cantar VALE CUATRO? (s/n): ").strip().lower()
-
-                                if respuesta == "s":
-
-                                    respuesta_pc = random.choice(["s", "n"])
-
-                                    if respuesta_pc == "n":
-
-                                        print("La PC no aceptó el vale cuatro.")
-                                        marcador["jugador"] += 3
-                                        return
-
-                                    else:
-
-                                        print("La PC aceptó el vale cuatro.")
-
-                                        nivel_truco = 3
-                                        puntos_truco = 4
-
-        # ---------------- JUGAR RONDA ----------------
-
-        ganador = jugar_ronda(mano_jugador, mano_pc, turno)
+        ganador = jugar_ronda(mano_jugador,mano_pc,turno)
 
         if ganador == "mazo":
 
-            ganador_mano = "pc"
-            break
+            return "pc", puntos_truco
 
         resultados.append(ganador)
 
-        ganador_mano = ganador_mano_terminada(resultados, mano)
+        ganador_mano = ganador_mano_terminada(resultados,mano)
 
         if ganador_mano != None:
 
             break
 
-        turno = siguiente_turno(ganador, turno)
+        turno = siguiente_turno(
+            ganador,
+            turno
+        )
 
-    # ---------------- RESULTADO ----------------
+    return ganador_mano, puntos_truco
+
+def mostrar_resultado_final(ganador_mano, marcador, puntos_truco):
+    """Se muestra el resultado final del jugador y de la pc"""
 
     print("\n===== RESULTADO =====")
 
     if ganador_mano == "jugador":
 
         print("Ganaste la mano.")
+
         marcador["jugador"] += puntos_truco
 
     else:
 
         print("La PC ganó la mano.")
+
         marcador["pc"] += puntos_truco
+
+
+
+def jugar_mano(marcador, quien_empieza):
+
+    mano_pc, mano_jugador = preparar_mano()
+
+    puntos_truco = 1
+    nivel_truco = 0
+
+    mano = quien_empieza
+    turno = mano
+
+    mostrar_inicio_mano(mano_jugador, mano)
+
+    jugar_envido(mano, mano_pc, mano_jugador, marcador)
+
+    ganador_mano, puntos_truco = jugar_rondas(mano_jugador,mano_pc,turno,mano,marcador,puntos_truco,nivel_truco)
+
+    mostrar_resultado_final(ganador_mano,marcador,puntos_truco)
         
 def jugar_partida():
     """
@@ -732,13 +715,14 @@ def jugar_partida():
     print("\n===== COMIENZA LA PARTIDA =====")
 
     quien_empieza = "jugador"
+    seguir_jugando = True
 
-    while hay_ganador(marcador, limite) == None:
+    while hay_ganador(marcador, limite) == None and seguir_jugando:
         
         try:
 
             jugar_mano(marcador, quien_empieza)
-
+            
         except Exception as error:
 
             print("\nOcurrió un error durante la mano.")
@@ -757,10 +741,20 @@ def jugar_partida():
         print("Jugador:", marcador["jugador"])
         print("PC:", marcador["pc"])
 
+        if hay_ganador(marcador, limite) == None:
+            respuesta = preguntar_si_no("¿Queres seguir jugando?(s/si o n/no): ")
+            if respuesta == "n" or respuesta == "no":
+                seguir_jugando = False
+
     ganador = hay_ganador(marcador, limite)
 
     print("\n===== FIN DE LA PARTIDA =====")
-    print("Ganador:", ganador)
+
+    if ganador != None:
+        print("Ganador:", ganador)
+    else: 
+        print("La partida fue cancelada")
+
 
 def reglasDeJuego():
     """
