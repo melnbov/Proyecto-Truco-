@@ -565,6 +565,93 @@ def jugar_envido(mano, mano_pc, mano_jugador, marcador):
                     marcador,
                     "pc"
                 )
+
+def manejar_vale_cuatro(marcador,puntos_truco,nivel_truco):
+    """Permite al jugador cantar valcuatro luego de cantar o aceptar retruco y actualiza los puntos segun la respuesta de la pc"""
+    respuesta = preguntar_si_no("¿Querés cantar VALE CUATRO? (s/si o n/no): ")
+
+    if respuesta == "s" or respuesta == "si":
+
+        respuesta_pc = random.choice(["s", "n"])
+
+        if respuesta_pc == "n":
+
+            print("La PC no aceptó el vale cuatro.")
+
+            marcador["jugador"] += 3
+
+            return True, puntos_truco, nivel_truco
+
+        print("La PC aceptó el vale cuatro.")
+
+        nivel_truco = 3
+        puntos_truco = 4
+
+    return False, puntos_truco, nivel_truco
+
+def manejar_retruco_jugador(marcador,puntos_truco,nivel_truco):
+    """Permite al jugador cantar retruco luego de aceptar un truco y actualiza los puntos segun la repsuesta de la pc """
+    respuesta = preguntar_si_no("¿Querés cantar RETRUCO? (s/si o n/no): ")
+
+    if respuesta == "s" or respuesta == "si":
+
+        respuesta_pc = random.choice(["s", "n"])
+
+        if respuesta_pc == "n":
+
+            print("La PC no aceptó el retruco.")
+
+            marcador["jugador"] += 2
+
+            return True, puntos_truco, nivel_truco
+
+        print("La PC aceptó el retruco.")
+
+        nivel_truco = 2
+        puntos_truco = 3
+
+        terminar, puntos_truco, nivel_truco = manejar_vale_cuatro(marcador,puntos_truco,nivel_truco)
+
+        if terminar:
+
+            return True, puntos_truco, nivel_truco
+
+    return False, puntos_truco, nivel_truco
+
+def manejar_retruco_pc(mano_pc,marcador,puntos_truco,nivel_truco):
+    """Permite a la PC cantar retruco cuando considera que tiene una mano fuerte. Actualiza lospuntos segun la respeusta del jugador"""
+    if decidir_retruco(mano_pc):
+
+        print("\nLa PC canta RETRUCO")
+
+        respuesta = preguntar_si_no("¿Aceptás? (s/si o n/no): ")
+
+        if respuesta == "n" or respuesta == "no":
+
+            print("No aceptaste el retruco.")
+
+            marcador["pc"] += 2
+
+            return True, puntos_truco, nivel_truco
+
+        print("Aceptaste el retruco.")
+
+        nivel_truco = 2
+        puntos_truco = 3
+
+        terminar, puntos_truco, nivel_truco = manejar_vale_cuatro(
+            marcador,
+            puntos_truco,
+            nivel_truco
+        )
+
+        if terminar:
+
+            return True, puntos_truco, nivel_truco
+
+    return False, puntos_truco, nivel_truco
+
+
 def manejar_truco(turno,mano_pc,mano_jugador,marcador,puntos_truco,nivel_truco):
     """En esta funcion se decide si el usuario canta o no truco y si acepta o no truco """
     if nivel_truco != 0:
@@ -595,6 +682,11 @@ def manejar_truco(turno,mano_pc,mano_jugador,marcador,puntos_truco,nivel_truco):
             nivel_truco = 1
             puntos_truco = 2
 
+            terminar,puntos_truco,nivel_truco=manejar_retruco_jugador(marcador,puntos_truco,nivel_truco)
+            if terminar:
+                return True, puntos_truco,nivel_truco
+
+
     else:
 
         mostrar_mano(mano_jugador)
@@ -619,6 +711,10 @@ def manejar_truco(turno,mano_pc,mano_jugador,marcador,puntos_truco,nivel_truco):
 
             nivel_truco = 1
             puntos_truco = 2
+
+            terminar,puntos_truco,nivel_truco = manejar_retruco_pc(mano_pc,marcador,puntos_truco,nivel_truco)
+            if terminar: 
+                return True, puntos_truco, nivel_truco
 
     return False, puntos_truco, nivel_truco
 
