@@ -326,67 +326,75 @@ def calcular_envido(mano):
     """
     Calcula los puntos de envido.
     """
-    puntos = 0
 
-    palos_dict = {}
+    try:
 
-    for carta in mano:
+        puntos = 0
 
-        numero = carta[0]
-        palo = carta[1]
-
-        # 10,11,12 valen 0
-        if numero >= 10:
-
-            valor_envido = 0
-
-        else:
-
-            valor_envido = numero
-
-        if palo not in palos_dict:
-
-            palos_dict[palo] = []
-
-        palos_dict[palo].append(valor_envido)
-
-    for palo in palos_dict:
-
-        valores = palos_dict[palo]
-
-        if len(valores) >= 2:
-
-            valores.sort(reverse=True)
-
-            puntos = max(
-                puntos,
-                valores[0] + valores[1] + 20
-            )
-
-    # Si no hay envido
-    if puntos == 20:
-
-        mayor = 0
+        palos_dict = {}
 
         for carta in mano:
 
             numero = carta[0]
+            palo = carta[1]
 
             if numero >= 10:
 
-                valor = 0
+                valor_envido = 0
 
             else:
 
-                valor = numero
+                valor_envido = numero
 
-            if valor > mayor:
+            if palo not in palos_dict:
 
-                mayor = valor
+                palos_dict[palo] = []
 
-        puntos = mayor
+            palos_dict[palo].append(valor_envido)
 
-    return puntos
+        for palo in palos_dict:
+
+            valores = palos_dict[palo]
+
+            if len(valores) >= 2:
+
+                valores.sort(reverse=True)
+
+                puntos = max(
+                    puntos,
+                    valores[0] + valores[1] + 20
+                )
+
+        if puntos == 20:
+
+            mayor = 0
+
+            for carta in mano:
+
+                numero = carta[0]
+
+                if numero >= 10:
+
+                    valor = 0
+
+                else:
+
+                    valor = numero
+
+                if valor > mayor:
+
+                    mayor = valor
+
+            puntos = mayor
+
+        return puntos
+
+    except Exception as error:
+
+        print("Error al calcular envido.")
+        print("Error:", error)
+
+        return 0
 
 def decidir_envido(mano):
     """
@@ -406,8 +414,13 @@ def decidir_truco(mano):
     Retorna True si canta truco, False si no.
     """
     for carta in mano:
-        if carta[0] > 2:
+
+        valor = valor_truco(carta[0], carta[1])
+
+        if valor >= 10:
+
             return True
+
     return False
 
 def decidir_retruco(mano):
@@ -416,10 +429,17 @@ def decidir_retruco(mano):
     Si la mano contiene un 7 de espada o un 7 de oro, decide cantar retruco.
     Retorna True si canta retruco, False en caso contrario.
     """
+    cartas_fuertes = 0
+
     for carta in mano:
-        if carta[0] == 7 and (carta[1] == "espada" or carta[1] == "oro"):
-            return True
-    return False
+
+        valor = valor_truco(carta[0], carta[1])
+
+        if valor >= 11:
+
+            cartas_fuertes += 1
+
+    return cartas_fuertes >= 1
 
 def decidir_valecuatro(mano):
     """
@@ -428,10 +448,17 @@ def decidir_valecuatro(mano):
     decide cantarlo.
     Retorna True si canta vale cuatro, False en caso contrario.
     """
+    cartas_muy_fuertes = 0
+
     for carta in mano:
-        if carta[0] == 1 and (carta[1] == "espada" or carta[1] == "basto"):
-            return True
-    return False
+
+        valor = valor_truco(carta[0], carta[1])
+
+        if valor >= 13:
+
+            cartas_muy_fuertes += 1
+
+    return cartas_muy_fuertes >= 1
 
 def hay_ganador(marcador, limite):
     """
@@ -485,12 +512,7 @@ def mostrar_inicio_mano(mano_jugador, mano):
 
     print("\nEmpieza:", mano)
 
-def resolver_envido(
-    mano_jugador,
-    mano_pc,
-    marcador,
-    mano
-):
+def resolver_envido(mano_jugador,mano_pc,marcador,mano):
     """En esta funcion se hace el calculo del envido en las cartas de la pc y el jugador"""
 
     envido_pc = calcular_envido(mano_pc)
@@ -565,19 +587,22 @@ def jugar_envido(mano, mano_pc, mano_jugador, marcador):
                     marcador,
                     "pc"
                 )
-def manejar_truco(turno,mano_pc,mano_jugador,marcador,puntos_truco,nivel_truco):
-    """En esta funcion se decide si el usuario canta o no truco y si acepta o no truco """
-    if nivel_truco != 0:
 
-        return False, puntos_truco, nivel_truco
+def manejar_vale_cuatro_pc(
+    mano_pc,
+    marcador,
+    puntos_truco,
+    nivel_truco
+):
+    """
+    Maneja el vale cuatro de la PC.
+    """
 
-    if turno == "pc":
+    try:
 
-        if decidir_truco(mano_pc):
+        if decidir_valecuatro(mano_pc):
 
-            print("\nLa PC canta TRUCO")
-
-            mostrar_mano(mano_jugador)
+            print("\nLa PC canta VALE CUATRO")
 
             respuesta = preguntar_si_no(
                 "¿Aceptás? (s/si o n/no): "
@@ -585,42 +610,270 @@ def manejar_truco(turno,mano_pc,mano_jugador,marcador,puntos_truco,nivel_truco):
 
             if respuesta == "n" or respuesta == "no":
 
-                print("No aceptaste el truco.")
-                marcador["pc"] += 1
+                print("No aceptaste el vale cuatro.")
+
+                marcador["pc"] += 3
 
                 return True, puntos_truco, nivel_truco
 
-            print("Aceptaste el truco.")
+            print("Aceptaste el vale cuatro.")
 
-            nivel_truco = 1
-            puntos_truco = 2
+            nivel_truco = 3
+            puntos_truco = 4
 
-    else:
+        return False, puntos_truco, nivel_truco
 
-        mostrar_mano(mano_jugador)
+    except Exception as error:
+
+        print("Error al manejar vale cuatro.")
+        print("Error:", error)
+
+        return True, puntos_truco, nivel_truco
+
+def manejar_vale_cuatro_jugador(
+    marcador,
+    puntos_truco,
+    nivel_truco
+):
+    """
+    Permite al jugador cantar vale cuatro.
+    """
+
+    try:
 
         respuesta = preguntar_si_no(
-            "\n¿Querés cantar TRUCO? (si/s o n/no): "
+            "¿Querés cantar VALE CUATRO? (s/si o n/no): "
         )
 
-        if respuesta == "s" or respuesta=="si":
+        if respuesta == "s" or respuesta == "si":
 
             respuesta_pc = random.choice(["s", "n"])
 
-            if respuesta_pc == "n" or respuesta == "no":
+            if respuesta_pc == "n":
 
-                print("La PC no aceptó el truco.")
+                print("La PC no aceptó el vale cuatro.")
 
-                marcador["jugador"] += 1
+                marcador["jugador"] += 3
 
                 return True, puntos_truco, nivel_truco
 
-            print("La PC aceptó el truco.")
+            print("La PC aceptó el vale cuatro.")
 
-            nivel_truco = 1
-            puntos_truco = 2
+            nivel_truco = 3
+            puntos_truco = 4
 
-    return False, puntos_truco, nivel_truco
+        return False, puntos_truco, nivel_truco
+
+    except Exception as error:
+
+        print("Error al manejar vale cuatro.")
+        print("Error:", error)
+
+        return True, puntos_truco, nivel_truco
+
+def manejar_retruco_jugador(
+    mano_pc,
+    marcador,
+    puntos_truco,
+    nivel_truco
+):
+    """
+    Permite al jugador cantar retruco.
+    """
+
+    try:
+
+        respuesta = preguntar_si_no(
+            "¿Querés cantar RETRUCO? (s/si o n/no): "
+        )
+
+        if respuesta == "s" or respuesta == "si":
+
+            respuesta_pc = random.choice(["s", "n"])
+
+            if respuesta_pc == "n":
+
+                print("La PC no aceptó el retruco.")
+
+                marcador["jugador"] += 2
+
+                return True, puntos_truco, nivel_truco
+
+            print("La PC aceptó el retruco.")
+
+            nivel_truco = 2
+            puntos_truco = 3
+
+            terminar, puntos_truco, nivel_truco = manejar_vale_cuatro_pc(
+                mano_pc,
+                marcador,
+                puntos_truco,
+                nivel_truco
+            )
+
+            if terminar:
+
+                return True, puntos_truco, nivel_truco
+
+        return False, puntos_truco, nivel_truco
+
+    except Exception as error:
+
+        print("Error al manejar retruco.")
+        print("Error:", error)
+
+        return True, puntos_truco, nivel_truco
+
+def manejar_retruco_pc(
+    mano_pc,
+    marcador,
+    puntos_truco,
+    nivel_truco
+):
+    """
+    Permite a la PC cantar retruco
+    cuando tiene una mano fuerte.
+    """
+
+    try:
+
+        if decidir_retruco(mano_pc):
+
+            print("\nLa PC canta RETRUCO")
+
+            respuesta = preguntar_si_no(
+                "¿Aceptás? (s/si o n/no): "
+            )
+
+            if respuesta == "n" or respuesta == "no":
+
+                print("No aceptaste el retruco.")
+
+                marcador["pc"] += 2
+
+                return True, puntos_truco, nivel_truco
+
+            print("Aceptaste el retruco.")
+
+            nivel_truco = 2
+            puntos_truco = 3
+
+            terminar, puntos_truco, nivel_truco = manejar_vale_cuatro_jugador(
+                marcador,
+                puntos_truco,
+                nivel_truco
+            )
+
+            if terminar:
+
+                return True, puntos_truco, nivel_truco
+
+        return False, puntos_truco, nivel_truco
+
+    except Exception as error:
+
+        print("Error al manejar retruco.")
+        print("Error:", error)
+
+        return True, puntos_truco, nivel_truco
+
+def manejar_truco(
+    turno,
+    mano_pc,
+    mano_jugador,
+    marcador,
+    puntos_truco,
+    nivel_truco
+):
+    """
+    Maneja las apuestas de truco,
+    retruco y vale cuatro.
+    """
+
+    try:
+
+        if turno == "pc":
+
+            if nivel_truco == 0 and decidir_truco(mano_pc):
+
+                print("\nLa PC canta TRUCO")
+
+                mostrar_mano(mano_jugador)
+
+                respuesta = preguntar_si_no(
+                    "¿Aceptás? (s o n): "
+                )
+
+                if respuesta == "n" or respuesta == "no":
+
+                    print("No aceptaste el truco.")
+
+                    marcador["pc"] += 1
+
+                    return True, puntos_truco, nivel_truco
+
+                print("Aceptaste el truco.")
+
+                nivel_truco = 1
+                puntos_truco = 2
+
+                terminar, puntos_truco, nivel_truco = manejar_retruco_jugador(
+                    mano_pc,
+                    marcador,
+                    puntos_truco,
+                    nivel_truco
+                )
+
+                if terminar:
+
+                    return True, puntos_truco, nivel_truco
+
+        else:
+
+            if nivel_truco == 0:
+
+                mostrar_mano(mano_jugador)
+
+                respuesta = preguntar_si_no(
+                    "\n¿Querés cantar TRUCO? (si/s o n/no): "
+                )
+
+                if respuesta == "s" or respuesta == "si":
+
+                    respuesta_pc = random.choice(["s", "n"])
+
+                    if respuesta_pc == "n":
+
+                        print("La PC no aceptó el truco.")
+
+                        marcador["jugador"] += 1
+
+                        return True, puntos_truco, nivel_truco
+
+                    print("La PC aceptó el truco.")
+
+                    nivel_truco = 1
+                    puntos_truco = 2
+
+                    terminar, puntos_truco, nivel_truco = manejar_retruco_pc(
+                        mano_pc,
+                        marcador,
+                        puntos_truco,
+                        nivel_truco
+                    )
+
+                    if terminar:
+
+                        return True, puntos_truco, nivel_truco
+
+        return False, puntos_truco, nivel_truco
+
+    except Exception as error:
+
+        print("Error al manejar el truco.")
+        print("Error:", error)
+
+        return True, puntos_truco, nivel_truco
 
 def jugar_rondas(mano_jugador,mano_pc,turno, mano,marcador,puntos_truco,nivel_truco):
     """En la funcion se suma los puntos obtenidos en cada ronda ganada """
@@ -751,8 +1004,10 @@ def jugar_partida():
     print("\n===== FIN DE LA PARTIDA =====")
 
     if ganador != None:
+
         print("Ganador:", ganador)
-    else: 
+        guardar_historial(ganador, marcador)
+    else:
         print("La partida fue cancelada")
 
 
@@ -808,6 +1063,58 @@ def reglasDeJuego():
         except ValueError:
 
             print("Error. Debe ingresar un número.")
+            
+def guardar_historial(ganador, marcador):
+    """
+    Guarda el resultado de cada partida
+    en un archivo de texto.
+    """
+
+    try:
+
+        with open("historial_truco.txt", "a") as archivo:
+
+            archivo.write(
+                "Ganador: " + ganador +
+                " | Jugador: " + str(marcador["jugador"]) +
+                " | PC: " + str(marcador["pc"]) +
+                "\n"
+            )
+
+    except Exception as error:
+
+        print("No se pudo guardar el historial.")
+        print("Error:", error)
+
+def mostrar_historial():
+    """
+    Muestra el historial de partidas.
+    """
+
+    try:
+
+        with open("historial_truco.txt", "r") as archivo:
+
+            print("\n===== HISTORIAL =====")
+
+            contenido = archivo.read()
+
+            if contenido == "":
+
+                print("No hay partidas guardadas.")
+
+            else:
+
+                print(contenido)
+
+    except FileNotFoundError:
+
+        print("\nTodavía no existe historial.")
+
+    except Exception as error:
+
+        print("Ocurrió un error al leer el historial.")
+        print("Error:", error)
 
 def menuDeInicio():
 
@@ -835,7 +1142,7 @@ def menuDeInicio():
 
             elif opcion == 3:
 
-                print("No hay historial todavía.")
+                mostrar_historial()
 
             elif opcion == 4:
 
